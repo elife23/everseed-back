@@ -74,7 +74,6 @@ def SignUp(request):
     return Response({"error" : "Wrong data format, or firstname is not good"}, status = status.HTTP_400_BAD_REQUEST)    
 
 
-
 # Generate a Meet Session for a user --
 @api_view(['POST'])
 def StartMeet(request):
@@ -138,7 +137,7 @@ def SettingMeet(request, id):
     else:
         return Response({"error" : "Wrong data format"}, status = status.HTTP_400_BAD_REQUEST)
     
-    return Response({"Meeting Link" : "Setting Meetingroom added"}, status = status.HTTP_200_OK)
+    return Response({"success" : "Setting Meetingroom added"}, status = status.HTTP_200_OK)
 
 
 
