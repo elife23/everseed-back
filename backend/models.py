@@ -39,6 +39,7 @@ class Meetingroom(models.Model):
     name = models.CharField(max_length=255)
     maxcapacity = models.IntegerField(db_column='maxCapacity')  # Field name made lowercase.
     deleted = models.IntegerField()
+    meetingid = models.ForeignKey(Meeting, models.DO_NOTHING, default=1, db_column='meetingId')  # Field name made lowercase.
 
     class Meta:
         db_table = 'meetingroom'
