@@ -7,9 +7,12 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
+import base64
+from cryptography.fernet import Fernet
 from .serializers import *
 from .models import *
 
+DOMAINS = 'http://'
 
 # Custom Token system : Login user --
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -70,3 +73,75 @@ def SignUp(request):
     print(serializer.errors)
     return Response({"error" : "Wrong data format, or firstname is not good"}, status = status.HTTP_400_BAD_REQUEST)    
 
+
+
+# Generate a Meet Session for a user --
+@api_view(['POST'])
+def StartMeet(request):
+    # Create meeting data model and store it
+    serializer = MeetingSerializer(data = request.data)
+    if serializer.is_valid():
+        serializer.save()
+    else:
+        return Response({"error" : "Wrong data format"}, status = status.HTTP_400_BAD_REQUEST)
+
+    # Current meeting instance
+    meeting = Meeting.objects.get(pk = serializer.data['id'])
+
+    # Store meetingId
+    value = str(meeting.id)
+
+    # Generate base key
+    base = Fernet(Fernet.generate_key())
+
+    # Encrypted value by key
+    encrypted_key = base.encrypt(value.encode())
+    #decrypted_key = base.decrypt(encrypted_key.decode())
+    #encrypted_key = base64.urlsafe_b64encode(key.encode())
+    #original_link = base64.urlsafe_b64decode(f_value.decode())
+
+    # Generate complete link for join a meet
+    #link = DOMAINS + request.get_host() + '/api/JoinMeet/' + str(encrypted_key) + '/'
+
+    return Response({"Meeting Link" : encrypted_key}, status = status.HTTP_200_OK)
+
+
+# Generate a Meet Session for a user --
+@api_view(['POST'])
+def SettingMeet(request, id):
+    # Check if an instance of Meetingroom already exists
+    try:
+        meeting_room = Meetingroom.objects.get(meetingid = id)
+        serializer = MeetingroomSerializer(instance = meeting_room, data = request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"success" : "Meetingroom update"}, status = status.HTTP_200_OK)
+        else:
+            return Response({"error" : "Wrong data format"}, status = status.HTTP_400_BAD_REQUEST)
+    except ObjectDoesNotExist:
+        pass
+
+    # We add meetingid to request.data
+    request.data._mutable = True
+    request.data['meetingid'] = id
+
+    # We store Meetingroom
+    serializer = MeetingroomSerializer(data = request.data)
+
+    if serializer.is_valid():
+        serializer.save()
+    else:
+        return Response({"error" : "Wrong data format"}, status = status.HTTP_400_BAD_REQUEST)
+    
+    return Response({"Meeting Link" : "Setting Meetingroom added"}, status = status.HTTP_200_OK)
+
+
+
+"""
+# Join a User Meet -------------------
+@api_view(['GET'])
+def JoinMeet(request, id):
+    
+    return Response({"success" : "Join sucessfully"}, status = status.HTTP_200_OK)
+"""
