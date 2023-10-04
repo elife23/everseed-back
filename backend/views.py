@@ -103,7 +103,11 @@ def StartMeet(request):
     # Generate complete link for join a meet
     #link = DOMAINS + request.get_host() + '/api/JoinMeet/' + str(encrypted_key) + '/'
 
-    return Response({"Meeting Link" : encrypted_key}, status = status.HTTP_200_OK)
+    content = {
+        "MeetingId" : meeting.id,
+        "MeetingLink" : encrypted_key,
+    }
+    return Response({"success" : content}, status = status.HTTP_200_OK)
 
 
 # Generate a Meet Session for a user --
