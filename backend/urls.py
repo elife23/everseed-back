@@ -13,5 +13,5 @@ urlpatterns = [
     path('showUser/<int:id>/', views.showUser),
     path('StartMeet/', views.StartMeet),
     path('SettingMeet/<int:id>/', views.SettingMeet),
-    #path('JoinMeet/<str:id>/', views.JoinMeet),
+    path('JoinMeet/', views.JoinMeet),
 ]
