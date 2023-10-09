@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 from rest_framework.decorators import api_view, permission_classes
-from django.contrib.auth.hashers import make_password, check_password
+from django.contrib.auth.hashers import make_password, check_password, hashlib
 from rest_framework.permissions import IsAuthenticated
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.response import Response
@@ -12,7 +12,7 @@ from cryptography.fernet import Fernet
 from .serializers import *
 from .models import *
 
-DOMAINS = 'http://'
+BASE = Fernet(Fernet.generate_key())
 
 # Custom Token system : Login user --
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -84,27 +84,16 @@ def StartMeet(request):
     else:
         return Response({"error" : "Wrong data format"}, status = status.HTTP_400_BAD_REQUEST)
 
-    # Current meeting instance
-    meeting = Meeting.objects.get(pk = serializer.data['id'])
+    # Format meeting id in string
+    value = str(serializer.data['id'])
 
-    # Store meetingId
-    value = str(meeting.id)
+    # Generate safe code
+    code = base64.urlsafe_b64encode(value.encode())
 
-    # Generate base key
-    base = Fernet(Fernet.generate_key())
-
-    # Encrypted value by key
-    encrypted_key = base.encrypt(value.encode())
-    #decrypted_key = base.decrypt(encrypted_key.decode())
-    #encrypted_key = base64.urlsafe_b64encode(key.encode())
-    #original_link = base64.urlsafe_b64decode(f_value.decode())
-
-    # Generate complete link for join a meet
-    #link = DOMAINS + request.get_host() + '/api/JoinMeet/' + str(encrypted_key) + '/'
-
+    # Response headers
     content = {
-        "MeetingId" : meeting.id,
-        "MeetingLink" : encrypted_key,
+        "MeetingId" : serializer.data['id'],
+        "MeetingLink" : code,
     }
     return Response({"success" : content}, status = status.HTTP_200_OK)
 
@@ -141,10 +130,28 @@ def SettingMeet(request, id):
 
 
 
-"""
 # Join a User Meet -------------------
-@api_view(['GET'])
-def JoinMeet(request, id):
-    
-    return Response({"success" : "Join sucessfully"}, status = status.HTTP_200_OK)
-"""
+@api_view(['POST'])
+def JoinMeet(request):
+    # For format data sended 
+    request.data._mutable = True
+
+    # Decode meeting code and parse user id in int
+    request.data['meetingid'] = int( base64.urlsafe_b64decode(request.data['meetingid']) ) 
+    request.data['userid'] = int( request.data['userid'] )
+
+    # We verify that user doesn't already join this meeting
+    try:
+        participant = Participant.objects.get(userid = request.data['userid'])
+        return Response({"success" : "You have already joined this meeting"}, status = status.HTTP_400_BAD_REQUEST)
+    except ObjectDoesNotExist:
+        pass
+
+    # Serialize it
+    serializer = ParticipantSerializer(data = request.data)
+
+    if serializer.is_valid():
+        serializer.save()
+        return Response({"success" : "You going to join the meeting"}, status = status.HTTP_200_OK)
+    else:
+        return Response({"error" : "Wrong format data"}, status = status.HTTP_400_BAD_REQUEST)
