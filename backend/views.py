@@ -76,6 +76,7 @@ def SignUp(request):
 
 # Generate a Meet Session for a user --
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def StartMeet(request):
     # Create meeting data model and store it
     serializer = MeetingSerializer(data = request.data)
@@ -100,6 +101,7 @@ def StartMeet(request):
 
 # Generate a Meet Session for a user --
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def SettingMeet(request, id):
     # Check if an instance of Meetingroom already exists
     try:
@@ -132,6 +134,7 @@ def SettingMeet(request, id):
 
 # Join a User Meet -------------------
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def JoinMeet(request):
     # For format data sended 
     request.data._mutable = True
