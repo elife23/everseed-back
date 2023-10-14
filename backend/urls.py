@@ -12,6 +12,6 @@ urlpatterns = [
     path('SignIn/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('showUser/<int:pkUser>/', views.showUser),
     path('StartMeet/', views.StartMeet),
-    path('SettingMeet/<int:pkMeeting>/', views.SettingMeet),
+    path('SettingMeet/', views.SettingMeet),
     path('JoinMeet/', views.JoinMeet),
 ]

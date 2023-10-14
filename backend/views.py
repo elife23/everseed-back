@@ -106,10 +106,10 @@ def StartMeet(request):
 @swagger_auto_schema(method='post', request_body=MeetingroomSerializer)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def SettingMeet(request, pkMeeting):
+def SettingMeet(request):
     # Check if an instance of Meetingroom already exists
     try:
-        meeting_room = Meetingroom.objects.get(meetingid = pkMeeting)
+        meeting_room = Meetingroom.objects.get(meetingid = request.data['meetingid'])
         serializer = MeetingroomSerializer(instance = meeting_room, data = request.data)
 
         if serializer.is_valid():
@@ -119,10 +119,6 @@ def SettingMeet(request, pkMeeting):
             return Response({"error" : "Wrong data format"}, status = status.HTTP_400_BAD_REQUEST)
     except ObjectDoesNotExist:
         pass
-
-    # We add meetingid to request.data
-    request.data._mutable = True
-    request.data['meetingid'] = pkMeeting
 
     # We store Meetingroom
     serializer = MeetingroomSerializer(data = request.data)
