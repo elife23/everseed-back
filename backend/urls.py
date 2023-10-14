@@ -10,8 +10,8 @@ urlpatterns = [
     path('SignUp/', views.SignUp),
     path('SignIn/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('SignIn/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('showUser/<int:id>/', views.showUser),
+    path('showUser/<int:pkUser>/', views.showUser),
     path('StartMeet/', views.StartMeet),
-    path('SettingMeet/<int:id>/', views.SettingMeet),
+    path('SettingMeet/<int:pkMeeting>/', views.SettingMeet),
     path('JoinMeet/', views.JoinMeet),
 ]

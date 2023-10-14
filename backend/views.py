@@ -33,9 +33,9 @@ class MyTokenObtainPairView(TokenObtainPairView):
 # Show user's informations ----------
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def showUser(request, id):
+def showUser(request, pkUser):
     try:
-        user = User.objects.get(id = id)
+        user = User.objects.get(id = pkUser)
     except ObjectDoesNotExist:
         return Response({'error': 'Not user at this ID'}, status = status.HTTP_400_BAD_REQUEST)
 
@@ -106,10 +106,10 @@ def StartMeet(request):
 @swagger_auto_schema(method='post', request_body=MeetingroomSerializer)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def SettingMeet(request, id):
+def SettingMeet(request, pkMeeting):
     # Check if an instance of Meetingroom already exists
     try:
-        meeting_room = Meetingroom.objects.get(meetingid = id)
+        meeting_room = Meetingroom.objects.get(meetingid = pkMeeting)
         serializer = MeetingroomSerializer(instance = meeting_room, data = request.data)
 
         if serializer.is_valid():
@@ -122,7 +122,7 @@ def SettingMeet(request, id):
 
     # We add meetingid to request.data
     request.data._mutable = True
-    request.data['meetingid'] = id
+    request.data['meetingid'] = pkMeeting
 
     # We store Meetingroom
     serializer = MeetingroomSerializer(data = request.data)
