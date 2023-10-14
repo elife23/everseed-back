@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
+from drf_yasg.utils import swagger_auto_schema
 import base64
 from cryptography.fernet import Fernet
 from .serializers import *
@@ -43,6 +44,7 @@ def showUser(request, id):
 
 
 # Create user ------------------------
+@swagger_auto_schema(method='post', request_body=UserSerializer)
 @api_view(['POST'])
 def SignUp(request):
     # Save user password
@@ -75,6 +77,7 @@ def SignUp(request):
 
 
 # Generate a Meet Session for a user --
+@swagger_auto_schema(method='post', request_body=MeetingSerializer)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def StartMeet(request):
@@ -100,6 +103,7 @@ def StartMeet(request):
 
 
 # Generate a Meet Session for a user --
+@swagger_auto_schema(method='post', request_body=MeetingroomSerializer)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def SettingMeet(request, id):
@@ -133,6 +137,7 @@ def SettingMeet(request, id):
 
 
 # Join a User Meet -------------------
+@swagger_auto_schema(method='post', request_body=ParticipantSerializer)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def JoinMeet(request):
