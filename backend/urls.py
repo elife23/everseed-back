@@ -10,10 +10,10 @@ urlpatterns = [
     path('SignUp/', views.SignUp),
     path('SignIn/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('SignIn/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('showUser/<int:pkUser>/', views.showUser),
-    path('StartMeet/', views.StartMeet),
-    path('SettingMeet/', views.SettingMeet),
-    path('JoinMeet/', views.JoinMeet),
-    path('AddCommentMeeting/', views.AddCommentMeeting),
-    path('ViewCommentMeeting/<int:pkMeeting>/', views.ViewCommentMeeting),
+    path('showUser/<int:pkUser>/', views.showUser), # Afficher les informations d'utilisateur
+    path('StartMeet/', views.StartMeet), # générer le code d'un meeting
+    path('SettingMeet/', views.SettingMeet), # Paramètrer une salle de réunion
+    path('JoinMeet/', views.JoinMeet), # Rejoindre un meeting
+    path('AddCommentMeeting/', views.AddCommentMeeting), # Ajouter un commentaire dans le meeting
+    path('ViewCommentMeeting/<int:pkMeeting>/', views.ViewCommentMeeting), # Voir tous les commentaires d'un meeting
 ]
