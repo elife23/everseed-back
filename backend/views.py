@@ -8,12 +8,11 @@ from rest_framework import status
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from drf_yasg.utils import swagger_auto_schema
-import base64
+import secrets
 from cryptography.fernet import Fernet
 from .serializers import *
 from .models import *
 
-BASE = Fernet(Fernet.generate_key())
 
 # Custom Token system : Login user --
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -79,7 +78,7 @@ def SignUp(request):
 @swagger_auto_schema(method='post', request_body=MeetingSerializer)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def StartMeet(request):
+def StartMeeting(request):
     # Create meeting data model and store it
     serializer = MeetingSerializer(data = request.data)
 
@@ -92,11 +91,14 @@ def StartMeet(request):
     meetingId = str(serializer.data['id'])
 
     # Generate a safe code
-    code = base64.urlsafe_b64encode(meetingId.encode())
+    cryptcode = secrets.token_hex(8)
+
+    # Cast with meeting id
+    cryptcode = cryptcode + '' + meetingId
 
     # Response value
     content = {
-        "meetingLink" : code,
+        "meetingLink" : cryptcode,
     }
     return Response({"success" : content}, status = status.HTTP_200_OK)
 
@@ -105,7 +107,7 @@ def StartMeet(request):
 @swagger_auto_schema(method='post', request_body=MeetingroomSerializer)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def SettingMeet(request):
+def SettingMeeting(request):
     # Check if an instance of Meetingroom already exists
     try:
         meeting_room = Meetingroom.objects.get(meetingid = request.data['meetingid'])
@@ -134,7 +136,7 @@ def SettingMeet(request):
 @swagger_auto_schema(method='post', request_body=ParticipantSerializer)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def JoinMeet(request):
+def JoinMeeting(request):
     # We verify that user doesn't already join this meeting
     try:
         participant = Participant.objects.get(userid = request.data['userid'])
