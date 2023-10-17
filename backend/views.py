@@ -40,7 +40,7 @@ def showUser(request, pkUser):
         return Response({'error': 'Not user at this ID'}, status = status.HTTP_400_BAD_REQUEST)
 
     serialization = UserSerializer(user)
-    return Response(serialization.data)
+    return Response({"response" : serialization.data}, status = status.HTTP_200_OK)
 
 
 # Create user ------------------------
@@ -82,6 +82,7 @@ def SignUp(request):
 def StartMeet(request):
     # Create meeting data model and store it
     serializer = MeetingSerializer(data = request.data)
+
     if serializer.is_valid():
         serializer.save()
     else:
@@ -100,7 +101,7 @@ def StartMeet(request):
     return Response({"success" : content}, status = status.HTTP_200_OK)
 
 
-# Generate a Meet Session for a user --
+# Custom a MeetingRoom of user -------------
 @swagger_auto_schema(method='post', request_body=MeetingroomSerializer)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -129,7 +130,6 @@ def SettingMeet(request):
     return Response({"success" : "Setting Meetingroom added"}, status = status.HTTP_200_OK)
 
 
-
 # Join a User Meet -------------------
 @swagger_auto_schema(method='post', request_body=ParticipantSerializer)
 @api_view(['POST'])
@@ -156,3 +156,41 @@ def JoinMeet(request):
             return Response({"error" : "Wrong format data"}, status = status.HTTP_400_BAD_REQUEST)
     except ObjectDoesNotExist:
         return Response({"error" : "Meeting finised or doen't exists"}, status = status.HTTP_400_BAD_REQUEST)
+
+
+@swagger_auto_schema(method='post', request_body=CommentmeetingSerializer)
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def AddCommentMeeting(request):
+    # We verify validity of meeting
+    try:
+        meeting = Meeting.objects.get(id = request.data['meetingid'])
+    except:
+        return Response({"error" : "Meeting doen't exists"}, status = status.HTTP_400_BAD_REQUEST)
+    
+    # Create Commentmeeting data model and store it
+    serializer = CommentmeetingSerializer(data = request.data)
+
+    if serializer.is_valid():
+        serializer.save()
+    else:
+        return Response({"error" : "Wrong format data"}, status = status.HTTP_400_BAD_REQUEST)
+
+    return Response({"success" : "Comment added with success"}, status = status.HTTP_200_OK)
+
+
+# Display Comment of meeting
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def ViewCommentMeeting(request, pkMeeting):
+    try:
+        meeting = Meeting.objects.get(id = pkMeeting)
+    except ObjectDoesNotExist:
+        return Response({"error" : "Comments not found for this meeting"}, status = status.HTTP_400_BAD_REQUEST)
+
+    # We get all comments
+    commentmeeting = Commentmeeting.objects.get(meetingid = pkMeeting)
+
+    # We format in serializer version
+    serialization = CommentmeetingSerializer(commentmeeting)
+    return Response({"response" : serialization.data}, status = status.HTTP_200_OK)
