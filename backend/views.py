@@ -33,7 +33,7 @@ class MyTokenObtainPairView(TokenObtainPairView):
 # Show user's informations ----------
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def showUser(request, pkUser):
+def ViewUser(request, pkUser):
     try:
         user = User.objects.get(id = pkUser)
     except ObjectDoesNotExist:
