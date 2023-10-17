@@ -76,7 +76,7 @@ def SignUp(request):
     return Response({"error" : "Wrong data format, or firstname is not good"}, status = status.HTTP_400_BAD_REQUEST)    
 
 
-# Generate a Meet Session for a user --
+# Generate a Link Meet Session for a user --
 @swagger_auto_schema(method='post', request_body=MeetingSerializer)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -89,15 +89,14 @@ def StartMeet(request):
         return Response({"error" : "Wrong data format"}, status = status.HTTP_400_BAD_REQUEST)
 
     # Format meeting id in string
-    value = str(serializer.data['id'])
+    meetingId = str(serializer.data['id'])
 
-    # Generate safe code
-    code = base64.urlsafe_b64encode(value.encode())
+    # Generate a safe code
+    code = base64.urlsafe_b64encode(meetingId.encode())
 
-    # Response headers
+    # Response value
     content = {
-        "MeetingId" : serializer.data['id'],
-        "MeetingLink" : code,
+        "meetingLink" : code,
     }
     return Response({"success" : content}, status = status.HTTP_200_OK)
 
