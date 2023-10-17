@@ -14,4 +14,6 @@ urlpatterns = [
     path('StartMeet/', views.StartMeet),
     path('SettingMeet/', views.SettingMeet),
     path('JoinMeet/', views.JoinMeet),
+    path('AddCommentMeeting/', views.AddCommentMeeting),
+    path('ViewCommentMeeting/<int:pkMeeting>/', views.ViewCommentMeeting),
 ]
