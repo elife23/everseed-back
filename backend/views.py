@@ -54,7 +54,7 @@ def SignUp(request):
     except KeyError:
         temp_password = ''
 
-    # Create data user model
+    # Insert data user
     serializer = UserSerializer(data = request.data) 
 
     # Si le format de données est valide
@@ -72,7 +72,6 @@ def SignUp(request):
         serializer.save()
         return Response({"success" : "user created !"}, status = status.HTTP_201_CREATED)
     # Sinon
-    print(serializer.errors)
     return Response({"error" : "Wrong data format, or firstname is not good"}, status = status.HTTP_400_BAD_REQUEST)    
 
 
@@ -136,34 +135,24 @@ def SettingMeet(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def JoinMeet(request):
-    # For format data sended 
-    request.data._mutable = True
-
-    # Decode meeting code and parse user id in int and try meeting code validity 
+    # We verify that user doesn't already join this meeting
     try:
-        request.data['meetingid'] = int( base64.urlsafe_b64decode(request.data['meetingid']) ) 
-        request.data['userid'] = int( request.data['userid'] )
+        participant = Participant.objects.get(userid = request.data['userid'])
+        return Response({"success" : "You have already joined this meeting"}, status = status.HTTP_400_BAD_REQUEST)
+    except ObjectDoesNotExist:
+        pass
 
-        # We verify that user doesn't already join this meeting
-        try:
-            participant = Participant.objects.get(userid = request.data['userid'])
-            return Response({"success" : "You have already joined this meeting"}, status = status.HTTP_400_BAD_REQUEST)
-        except ObjectDoesNotExist:
-            pass
+    # We verify that user try to join a valid meeting
+    try:
+        meeting = Meeting.objects.get(id = request.data['meetingid'], deleted = 0)
 
-        # We verify that user try to join a valid meeting
-        try:
-            meeting = Meeting.objects.get(id = request.data['meetingid'], deleted = 0)
+        # Create Data participant
+        serializer = ParticipantSerializer(data = request.data)
 
-            # Serialize it
-            serializer = ParticipantSerializer(data = request.data)
-
-            if serializer.is_valid():
-                serializer.save()
-                return Response({"success" : "You going to join the meeting"}, status = status.HTTP_200_OK)
-            else:
-                return Response({"error" : "Wrong format data"}, status = status.HTTP_400_BAD_REQUEST)
-        except ObjectDoesNotExist:
-            return Response({"error" : "Meeting finised or doen't exists"}, status = status.HTTP_400_BAD_REQUEST)
-    except:
-        return Response({"error" : "Invalid format meeting code."}, status = status.HTTP_400_BAD_REQUEST)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"success" : "You going to join the meeting"}, status = status.HTTP_200_OK)
+        else:
+            return Response({"error" : "Wrong format data"}, status = status.HTTP_400_BAD_REQUEST)
+    except ObjectDoesNotExist:
+        return Response({"error" : "Meeting finised or doen't exists"}, status = status.HTTP_400_BAD_REQUEST)
