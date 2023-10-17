@@ -188,9 +188,9 @@ def ViewCommentMeeting(request, pkMeeting):
     except ObjectDoesNotExist:
         return Response({"error" : "Comments not found for this meeting"}, status = status.HTTP_400_BAD_REQUEST)
 
-    # We get all comments
-    commentmeeting = Commentmeeting.objects.get(meetingid = pkMeeting)
+    # Get all comments of meeting
+    commentmeeting = Commentmeeting.objects.all().filter(meetingid = pkMeeting)
 
     # We format in serializer version
-    serialization = CommentmeetingSerializer(commentmeeting)
+    serialization = CommentmeetingSerializer(commentmeeting, many = True)
     return Response({"response" : serialization.data}, status = status.HTTP_200_OK)
