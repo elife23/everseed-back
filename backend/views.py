@@ -79,7 +79,7 @@ def SignUp(request):
 @swagger_auto_schema(method='post', request_body=MeetingSerializer)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def StartMeet(request):
+def StartMeeting(request):
     # Create meeting data model and store it
     serializer = MeetingSerializer(data = request.data)
 
@@ -105,7 +105,7 @@ def StartMeet(request):
 @swagger_auto_schema(method='post', request_body=MeetingroomSerializer)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def SettingMeet(request):
+def SettingMeeting(request):
     # Check if an instance of Meetingroom already exists
     try:
         meeting_room = Meetingroom.objects.get(meetingid = request.data['meetingid'])
@@ -134,7 +134,7 @@ def SettingMeet(request):
 @swagger_auto_schema(method='post', request_body=ParticipantSerializer)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def JoinMeet(request):
+def JoinMeeting(request):
     # We verify that user doesn't already join this meeting
     try:
         participant = Participant.objects.get(userid = request.data['userid'])
