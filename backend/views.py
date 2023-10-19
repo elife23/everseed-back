@@ -191,7 +191,7 @@ def ViewCommentMeeting(request, pkMeeting):
     try:
         meeting = Meeting.objects.get(id = pkMeeting)
     except ObjectDoesNotExist:
-        return Response({"error" : "Comments not found for this meeting"}, status = status.HTTP_400_BAD_REQUEST)
+        return Response({"error" : "None comments found for this meeting"}, status = status.HTTP_400_BAD_REQUEST)
 
     # Get all comments of meeting
     commentmeeting = Commentmeeting.objects.all().filter(meetingid = pkMeeting)
