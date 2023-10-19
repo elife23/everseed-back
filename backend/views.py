@@ -163,8 +163,8 @@ def JoinMeeting(request):
         return Response({"error" : "Meeting finised or doen't exists"}, status = status.HTTP_400_BAD_REQUEST)
 
 
-@swagger_auto_schema(method='post', request_body=CommentmeetingSerializer)
-@api_view(['POST'])
+@swagger_auto_schema(method='put', request_body=CommentmeetingSerializer)
+@api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 def AddCommentMeeting(request):
     # We verify validity of meeting
