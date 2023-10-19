@@ -63,16 +63,16 @@ def SignUp(request):
         all_user = User.objects.all();
 
         for user in all_user:
-            # We compare current password with each user password already registered
+            # We compare each user password with current user password
             is_exists_password = check_password(temp_password, user.password)
 
             if is_exists_password == True:
-                return Response({"error" : "password is not secured"}, status = status.HTTP_400_BAD_REQUEST)
+                return Response({"error" : "Password is not secured"}, status = status.HTTP_400_BAD_REQUEST)
             else:
                 pass
     
         serializer.save()
-        return Response({"success" : "user registered with success"}, status = status.HTTP_201_CREATED)
+        return Response({"success" : "User registered with success"}, status = status.HTTP_201_CREATED)
     # Sinon
     return Response({"error" : "Wrong data format or firstname is already used"}, status = status.HTTP_400_BAD_REQUEST)    
 
