@@ -63,11 +63,10 @@ def SignUp(request):
         all_user = User.objects.all();
 
         for user in all_user:
-            # We compare current password with each user password already registered
-            is_exists_password = check_password(temp_password, user.password)
-
-            if is_exists_password == True:
-                return Response({"error" : "password is not secured"}, status = status.HTTP_400_BAD_REQUEST)
+            verify = check_password(temp_password, user.password)
+            if verify == True:
+                user_exists_error = {"error" : "password is not secured"}
+                return Response(user_exists_error, status = status.HTTP_400_BAD_REQUEST)
             else:
                 pass
     
