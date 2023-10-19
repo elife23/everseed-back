@@ -46,9 +46,11 @@ def ViewUser(request, pkUser):
 @swagger_auto_schema(method='post', request_body=UserSerializer)
 @api_view(['POST'])
 def SignUp(request):
-    # Save user password
     try:
+        # Save temporary current user password for make comparizon
         temp_password = request.data['password']
+
+        # Hashing current user password
         request.data['password'] = make_password(request.data['password'])
     except KeyError:
         temp_password = ''
@@ -56,22 +58,23 @@ def SignUp(request):
     # Insert data user
     serializer = UserSerializer(data = request.data) 
 
-    # Si le format de données est valide
     if serializer.is_valid():
-        # On verifie que l'intégrité du password est respecté
+        # We get all user
         all_user = User.objects.all();
+
         for user in all_user:
-            verify = check_password(temp_password, user.password)
-            if verify == True:
-                user_exists_error = {"error" : "password is not secured"}
-                return Response(user_exists_error, status = status.HTTP_400_BAD_REQUEST)
+            # We compare current password with each user password already registered
+            is_exists_password = check_password(temp_password, user.password)
+
+            if is_exists_password == True:
+                return Response({"error" : "password is not secured"}, status = status.HTTP_400_BAD_REQUEST)
             else:
                 pass
     
         serializer.save()
-        return Response({"success" : "user created !"}, status = status.HTTP_201_CREATED)
+        return Response({"success" : "user registered with success"}, status = status.HTTP_201_CREATED)
     # Sinon
-    return Response({"error" : "Wrong data format, or firstname is not good"}, status = status.HTTP_400_BAD_REQUEST)    
+    return Response({"error" : "Wrong data format or firstname is already used"}, status = status.HTTP_400_BAD_REQUEST)    
 
 
 # Generate a Link Meet Session for a user --
