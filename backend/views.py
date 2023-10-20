@@ -102,29 +102,39 @@ def StartMeeting(request):
 @swagger_auto_schema(method='post', request_body=MeetingroomSerializer)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def SettingMeeting(request):
-    # Check if an instance of Meetingroom already exists
+def SettingMeeting(request, roomName):
     try:
-        meeting_room = Meetingroom.objects.get(meetingid = request.data['meetingid'])
-        serializer = MeetingroomSerializer(instance = meeting_room, data = request.data)
+        # We get roomName of current meeting 
+        meeting = Meeting.objects.get(roomname = roomName)
+
+        # We cast field meeting id with current meeting id
+        request.data['meetingid'] = meeting.id
+
+        try:  
+            # Check if an instance of Meetingroom already exists
+            meeting_room = Meetingroom.objects.get(meetingid = request.data['meetingid'])
+
+            # We update MeetingRoom
+            serializer = MeetingroomSerializer(instance = meeting_room, data = request.data)
+
+            if serializer.is_valid():
+                serializer.save()
+                return Response({"success" : "Meetingroom update"}, status = status.HTTP_200_OK)
+            else:
+                return Response({"error" : "Wrong data format"}, status = status.HTTP_400_BAD_REQUEST)
+        except ObjectDoesNotExist:
+            pass
+
+        # We insert Meetingroom
+        serializer = MeetingroomSerializer(data = request.data)
 
         if serializer.is_valid():
             serializer.save()
-            return Response({"success" : "Meetingroom update"}, status = status.HTTP_200_OK)
+            return Response({"success" : "Meetingroom inserted"}, status = status.HTTP_200_OK)
         else:
             return Response({"error" : "Wrong data format"}, status = status.HTTP_400_BAD_REQUEST)
     except ObjectDoesNotExist:
-        pass
-
-    # We store Meetingroom
-    serializer = MeetingroomSerializer(data = request.data)
-
-    if serializer.is_valid():
-        serializer.save()
-    else:
-        return Response({"error" : "Wrong data format"}, status = status.HTTP_400_BAD_REQUEST)
-    
-    return Response({"success" : "Setting Meetingroom added"}, status = status.HTTP_200_OK)
+        return Response({"error" : "Meeting doesn't exists"}, status = status.HTTP_400_BAD_REQUEST)
 
 
 # Join a User Meet -------------------
