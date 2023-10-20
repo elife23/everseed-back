@@ -175,6 +175,7 @@ def JoinMeeting(request, roomName):
         return Response({"error" : "Invalid Meeting code"}, status = status.HTTP_400_BAD_REQUEST)
 
 
+# Add comment of meeting
 @swagger_auto_schema(method='put', request_body=CommentmeetingSerializer)
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
