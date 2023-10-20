@@ -217,15 +217,17 @@ def AddCommentMeeting(request, pkUser, roomName):
 # Display Comment of meeting
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def ViewCommentMeeting(request, pkMeeting):
+def ViewCommentMeeting(request, roomName):
+    # Check if meeting is valid
     try:
-        meeting = Meeting.objects.get(id = pkMeeting)
+        meeting = Meeting.objects.get(roomname = roomName)
+
+        # Get all comments of meeting
+        commentmeeting = Commentmeeting.objects.all().filter(meetingid = meeting.id)
+
+        # We convert data in valid format
+        serialization = CommentmeetingSerializer(commentmeeting, many = True)
+
+        return Response({"response" : serialization.data}, status = status.HTTP_200_OK)
     except ObjectDoesNotExist:
         return Response({"error" : "None comments found for this meeting"}, status = status.HTTP_400_BAD_REQUEST)
-
-    # Get all comments of meeting
-    commentmeeting = Commentmeeting.objects.all().filter(meetingid = pkMeeting)
-
-    # We format in serializer version
-    serialization = CommentmeetingSerializer(commentmeeting, many = True)
-    return Response({"response" : serialization.data}, status = status.HTTP_200_OK)

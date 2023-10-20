@@ -15,5 +15,5 @@ urlpatterns = [
     path('SettingMeeting/<int:roomName>/', views.SettingMeeting), # Paramètrer une salle de réunion
     path('JoinMeeting/<int:roomName>/', views.JoinMeeting), # Rejoindre un meeting
     path('AddCommentMeeting/Participant/<int:pkUser>/Codemeet/<int:roomName>/', views.AddCommentMeeting), # Ajouter un commentaire dans le meeting
-    path('ViewCommentMeeting/<int:pkMeeting>/', views.ViewCommentMeeting), # Voir tous les commentaires d'un meeting
+    path('ViewCommentMeeting/<int:roomName>/', views.ViewCommentMeeting), # Voir tous les commentaires d'un meeting
 ]
