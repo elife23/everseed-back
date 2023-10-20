@@ -134,14 +134,14 @@ def SettingMeeting(request, roomName):
         else:
             return Response({"error" : "Wrong data format"}, status = status.HTTP_400_BAD_REQUEST)
     except ObjectDoesNotExist:
-        return Response({"error" : "Meeting doesn't exists"}, status = status.HTTP_400_BAD_REQUEST)
+        return Response({"error" : "Invalid meeting code"}, status = status.HTTP_400_BAD_REQUEST)
 
 
 # Join a User Meet -------------------
 @swagger_auto_schema(method='post', request_body=ParticipantSerializer)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def JoinMeeting(request):
+def JoinMeeting(request, roomName):
     # We verify that user doesn't already join this meeting
     try:
         participant = Participant.objects.get(userid = request.data['userid'])
@@ -149,20 +149,30 @@ def JoinMeeting(request):
     except ObjectDoesNotExist:
         pass
 
-    # We verify that user try to join a valid meeting
     try:
-        meeting = Meeting.objects.get(id = request.data['meetingid'], deleted = 0)
+        # We get roomName of current meeting 
+        meeting = Meeting.objects.get(roomname = roomName)
 
-        # Create Data participant
-        serializer = ParticipantSerializer(data = request.data)
+        # We cast field meeting id with current meeting id
+        request.data['meetingid'] = meeting.id
 
-        if serializer.is_valid():
-            serializer.save()
-            return Response({"success" : "You going to join the meeting"}, status = status.HTTP_200_OK)
-        else:
-            return Response({"error" : "Wrong format data"}, status = status.HTTP_400_BAD_REQUEST)
+        # We verify that user try to join a valid meeting
+        try:
+            # We get cuurent meeting
+            meeting = Meeting.objects.get(id = request.data['meetingid'], deleted = 0)
+
+            # Create Data participant
+            serializer = ParticipantSerializer(data = request.data)
+
+            if serializer.is_valid():
+                serializer.save()
+                return Response({"success" : "You going to join the meeting"}, status = status.HTTP_200_OK)
+            else:
+                return Response({"error" : "Wrong format data"}, status = status.HTTP_400_BAD_REQUEST)
+        except ObjectDoesNotExist:
+            return Response({"error" : "Meeting doen't exists"}, status = status.HTTP_400_BAD_REQUEST)
     except ObjectDoesNotExist:
-        return Response({"error" : "Meeting finised or doen't exists"}, status = status.HTTP_400_BAD_REQUEST)
+        return Response({"error" : "Invalid Meeting code"}, status = status.HTTP_400_BAD_REQUEST)
 
 
 @swagger_auto_schema(method='put', request_body=CommentmeetingSerializer)
