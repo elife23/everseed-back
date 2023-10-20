@@ -12,7 +12,7 @@ urlpatterns = [
     path('SignIn/refresh/', TokenRefreshView.as_view(), name='token_refresh'), # Mettre à jour le token de connexion
     path('ViewUser/<int:pkUser>/', views.ViewUser), # Afficher les informations d'utilisateur
     path('StartMeeting/', views.StartMeeting), # générer le code d'un meeting
-    path('SettingMeeting/', views.SettingMeeting), # Paramètrer une salle de réunion
+    path('SettingMeeting/<int:roomName>/', views.SettingMeeting), # Paramètrer une salle de réunion
     path('JoinMeeting/', views.JoinMeeting), # Rejoindre un meeting
     path('AddCommentMeeting/', views.AddCommentMeeting), # Ajouter un commentaire dans le meeting
     path('ViewCommentMeeting/<int:pkMeeting>/', views.ViewCommentMeeting), # Voir tous les commentaires d'un meeting
