@@ -30,6 +30,7 @@ class Meeting(models.Model):
     datetime = models.DateTimeField(db_column='dateTime')  # Field name made lowercase.
     duration = models.DecimalField(max_digits=10, decimal_places=0)
     deleted = models.IntegerField()
+    roomname = models.BigIntegerField(default=0)
 
     class Meta:
         db_table = 'meeting'
