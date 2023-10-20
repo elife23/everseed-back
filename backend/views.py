@@ -149,6 +149,7 @@ def JoinMeeting(request, roomName):
     except ObjectDoesNotExist:
         pass
 
+    # Check if roomName is valid
     try:
         # We get roomName of current meeting 
         meeting = Meeting.objects.get(roomname = roomName)
@@ -179,22 +180,38 @@ def JoinMeeting(request, roomName):
 @swagger_auto_schema(method='put', request_body=CommentmeetingSerializer)
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
-def AddCommentMeeting(request):
-    # We verify validity of meeting
+def AddCommentMeeting(request, pkUser, roomName):
+    # Check if roomName is valid
     try:
-        meeting = Meeting.objects.get(id = request.data['meetingid'])
-    except:
-        return Response({"error" : "Meeting doen't exists"}, status = status.HTTP_400_BAD_REQUEST)
-    
-    # Create Commentmeeting data model and store it
-    serializer = CommentmeetingSerializer(data = request.data)
+        # We get roomName of current meeting 
+        meeting = Meeting.objects.get(roomname = roomName)
 
-    if serializer.is_valid():
-        serializer.save()
-    else:
-        return Response({"error" : "Wrong format data"}, status = status.HTTP_400_BAD_REQUEST)
+        # We cast field meeting id with current meeting id
+        request.data['meetingid'] = meeting.id
 
-    return Response({"success" : "Comment added with success"}, status = status.HTTP_200_OK)
+        # We verify validity of meeting
+        try:
+            meeting = Meeting.objects.get(id = request.data['meetingid'])
+        except:
+            return Response({"error" : "Meeting doen't exists"}, status = status.HTTP_400_BAD_REQUEST)
+        
+        # We verify if he is participant of the meeting
+        try:
+            participant = Participant.objects.get(userid = pkUser)
+
+            # Create Commentmeeting data model and store it
+            serializer = CommentmeetingSerializer(data = request.data)
+
+            if serializer.is_valid():
+                serializer.save()
+                return Response({"success" : "Comment added with success"}, status = status.HTTP_200_OK)
+            else:
+                return Response({"error" : "Wrong format data"}, status = status.HTTP_400_BAD_REQUEST)
+        except ObjectDoesNotExist:
+            return Response({"error" : "He must be participant for send comment"}, status = status.HTTP_400_BAD_REQUEST)
+    except ObjectDoesNotExist:
+        return Response({"error" : "Invalid Meeting code"}, status = status.HTTP_400_BAD_REQUEST)
+
 
 
 # Display Comment of meeting
