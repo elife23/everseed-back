@@ -86,24 +86,16 @@ def StartMeeting(request):
     serializer = MeetingSerializer(data = request.data)
 
     if serializer.is_valid():
+        # We save meeting
         serializer.save()
+
+        # We get roomname of created meeting
+        roomName = serializer.data['roomname']
+
+        return Response({"response" : roomName}, status = status.HTTP_200_OK)
     else:
         return Response({"error" : "Wrong data format"}, status = status.HTTP_400_BAD_REQUEST)
 
-    # Format meeting id in string
-    meetingId = str(serializer.data['id'])
-
-    # Generate a safe code
-    cryptcode = secrets.token_hex(8)
-
-    # Cast with meeting id
-    cryptcode = cryptcode + '' + meetingId
-
-    # Response value
-    content = {
-        "meetingLink" : cryptcode,
-    }
-    return Response({"success" : content}, status = status.HTTP_200_OK)
 
 
 # Custom a MeetingRoom of user -------------
