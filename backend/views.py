@@ -261,20 +261,21 @@ def LaunchWhiteboard(request):
         return Response({"error" : "Wrong data format"}, status = status.HTTP_400_BAD_REQUEST)
 
 
-"""
-# Launch a Whiteboard  -----------------
-@swagger_auto_schema(method='put', request_body=WhiteboardSerializer)
-@api_view(['put'])
+
+# Display Comment of Whiteboard  -----------------
+@api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def AddCommentWhiteboard(request, whitename):
-    # Create whiteboard data model and store it
-    serializer = WhiteboardSerializer(data = request.data)
+def ViewCommentWhiteboard(request, whiteName):
+    # Check if whiteboard is valid
+    try:
+        whiteboard = Whiteboard.objects.get(whitename = whiteName)
 
-    if serializer.is_valid():
-        # We save whiteboard
-        serializer.save()
+        # Get all comments of whiteboard
+        commentwhiteboard = Commentwhiteboard.objects.all().filter(whiteboardid = whiteboard.id)
 
-        return Response({"success" : "Whiteboard Launched"}, status = status.HTTP_200_OK)
-    else:
-        return Response({"error" : "Wrong data format"}, status = status.HTTP_400_BAD_REQUEST)
-"""
+        # We convert data in valid format
+        serialization = CommentwhiteboardSerializer(commentwhiteboard, many = True)
+
+        return Response({"response" : serialization.data}, status = status.HTTP_200_OK)
+    except ObjectDoesNotExist:
+        return Response({"error" : "None comments found for this whiteboard"}, status = status.HTTP_400_BAD_REQUEST)
