@@ -77,11 +77,11 @@ def SignUp(request):
     return Response({"error" : "Wrong data format or firstname is already used"}, status = status.HTTP_400_BAD_REQUEST)    
 
 
-# Generate a Link Meet Session for a user --
+# Launch a Meeting Session -----------
 @swagger_auto_schema(method='post', request_body=MeetingSerializer)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def StartMeeting(request):
+def LaunchMeeting(request):
     # Create meeting data model and store it
     serializer = MeetingSerializer(data = request.data)
 
@@ -89,10 +89,7 @@ def StartMeeting(request):
         # We save meeting
         serializer.save()
 
-        # We get roomname of created meeting
-        roomName = serializer.data['roomname']
-
-        return Response({"response" : roomName}, status = status.HTTP_200_OK)
+        return Response({"response" : "Meeting Launched"}, status = status.HTTP_200_OK)
     else:
         return Response({"error" : "Wrong data format"}, status = status.HTTP_400_BAD_REQUEST)
 
@@ -137,7 +134,7 @@ def SettingMeeting(request, roomName):
         return Response({"error" : "Invalid meeting code"}, status = status.HTTP_400_BAD_REQUEST)
 
 
-# Join a User Meet -------------------
+# Join a Meeting --------------------
 @swagger_auto_schema(method='post', request_body=ParticipantSerializer)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -176,7 +173,7 @@ def JoinMeeting(request, roomName):
         return Response({"error" : "Invalid Meeting code"}, status = status.HTTP_400_BAD_REQUEST)
 
 
-# Add comment of meeting
+# Add comment of meeting -------------
 @swagger_auto_schema(method='put', request_body=CommentmeetingSerializer)
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
@@ -214,7 +211,7 @@ def AddCommentMeeting(request, pkUser, roomName):
 
 
 
-# Display Comment of meeting
+# Display Comment of meeting ---------
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def ViewCommentMeeting(request, roomName):
@@ -231,3 +228,21 @@ def ViewCommentMeeting(request, roomName):
         return Response({"response" : serialization.data}, status = status.HTTP_200_OK)
     except ObjectDoesNotExist:
         return Response({"error" : "None comments found for this meeting"}, status = status.HTTP_400_BAD_REQUEST)
+
+
+
+# Launch a Whiteboard  -----------------
+@swagger_auto_schema(method='post', request_body=WhiteboardSerializer)
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def LaunchWhiteboard(request):
+    # Create whiteboard data model and store it
+    serializer = WhiteboardSerializer(data = request.data)
+
+    if serializer.is_valid():
+        # We save whiteboard
+        serializer.save()
+
+        return Response({"success" : "Whiteboard Launched"}, status = status.HTTP_200_OK)
+    else:
+        return Response({"error" : "Wrong data format"}, status = status.HTTP_400_BAD_REQUEST)
