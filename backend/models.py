@@ -152,6 +152,7 @@ class Usersubscription(models.Model):
 
 class Whiteboard(models.Model):
     content = models.TextField()
+    whitename = models.BigIntegerField(default=0)
 
     class Meta:
         db_table = 'whiteboard'
