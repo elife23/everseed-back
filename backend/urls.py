@@ -17,4 +17,5 @@ urlpatterns = [
     path('AddCommentMeeting/<int:roomName>/Participant/<int:pkUser>/', views.AddCommentMeeting), # Ajouter un commentaire dans le meeting
     path('ViewCommentMeeting/<int:roomName>/', views.ViewCommentMeeting), # Voir tous les commentaires d'un meeting
     path('LaunchWhiteboard/', views.LaunchWhiteboard), # Lancer un whiteboard
+    path('ViewCommentWhiteboard/<int:whiteName>/', views.ViewCommentWhiteboard), # Lancer un whiteboard
 ]
