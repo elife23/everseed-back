@@ -203,7 +203,7 @@ def AddCommentMeeting(request, pkUser, roomName):
         try:
             meeting = Meeting.objects.get(id = request.data['meetingid'])
         except:
-            return Response({"error" : "Meeting doen't exists"}, status = status.HTTP_400_BAD_REQUEST)
+            return Response({"error" : "Meeting doesn't exists"}, status = status.HTTP_400_BAD_REQUEST)
         
         # We verify if he is participant of the meeting
         try:
@@ -259,6 +259,34 @@ def LaunchWhiteboard(request):
         return Response({"success" : "Whiteboard Launched"}, status = status.HTTP_200_OK)
     else:
         return Response({"error" : "Wrong data format"}, status = status.HTTP_400_BAD_REQUEST)
+
+
+
+
+# Add comment of whiteboard -------------
+@swagger_auto_schema(method='put', request_body=CommentwhiteboardSerializer)
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def AddCommentWhiteboard(request, whiteName):
+    # Check if whiteName is valid
+    try:
+        # We get whiteName of current whiteboard 
+        whiteboard = Whiteboard.objects.get(whitename = whiteName)
+
+        # We cast field whiteboardid with current whiteboard id
+        request.data['whiteboardid'] = whiteboard.id
+
+        # Create Commentwhiteboard data model and store it
+        serializer = CommentwhiteboardSerializer(data = request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"success" : "Comment added with success"}, status = status.HTTP_200_OK)
+        else:
+            return Response({"error" : "Wrong format data"}, status = status.HTTP_400_BAD_REQUEST)
+    except ObjectDoesNotExist:
+        return Response({"error" : "Invalid Whiteboard code"}, status = status.HTTP_400_BAD_REQUEST)
+
 
 
 
