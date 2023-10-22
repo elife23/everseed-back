@@ -89,7 +89,7 @@ def LaunchMeeting(request):
         # We save meeting
         serializer.save()
 
-        return Response({"response" : "Meeting Launched"}, status = status.HTTP_200_OK)
+        return Response({"success" : "Meeting Launched"}, status = status.HTTP_200_OK)
     else:
         return Response({"error" : "Wrong data format"}, status = status.HTTP_400_BAD_REQUEST)
 
@@ -139,14 +139,14 @@ def SettingMeeting(request, roomName):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def JoinMeeting(request, roomName):
-    # We verify that user doesn't already join this meeting
+    # We check that user doesn't already join this meeting
     try:
         participant = Participant.objects.get(userid = request.data['userid'])
         return Response({"success" : "You have already joined this meeting"}, status = status.HTTP_400_BAD_REQUEST)
     except ObjectDoesNotExist:
         pass
 
-    # Check if roomName is valid
+    # We Check if roomName is valid
     try:
         # We get roomName of current meeting 
         meeting = Meeting.objects.get(roomname = roomName)
@@ -156,17 +156,30 @@ def JoinMeeting(request, roomName):
 
         # We verify that user try to join a valid meeting
         try:
-            # We get cuurent meeting
+            # We get curent meeting
             meeting = Meeting.objects.get(id = request.data['meetingid'], deleted = 0)
 
-            # Create Data participant
-            serializer = ParticipantSerializer(data = request.data)
+            # We get participant size
+            size_participant = Participant.objects.filter(meetingid = meeting.id).count()
+            print(size_participant)
 
-            if serializer.is_valid():
-                serializer.save()
-                return Response({"success" : "You going to join the meeting"}, status = status.HTTP_200_OK)
-            else:
-                return Response({"error" : "Wrong format data"}, status = status.HTTP_400_BAD_REQUEST)
+            # We get maxCapacity of meetingroom
+            meetingroom = Meetingroom.objects.get(meetingid = meeting.id)
+
+            # We Check that participant size is not greater than maxCapacity
+            try:
+                assert size_participant > meetingroom.maxcapacity
+
+                # Create Data participant
+                serializer = ParticipantSerializer(data = request.data)
+
+                if serializer.is_valid():
+                    serializer.save()
+                    return Response({"success" : "You going to join the meeting"}, status = status.HTTP_200_OK)
+                else:
+                    return Response({"error" : "Wrong format data"}, status = status.HTTP_400_BAD_REQUEST)
+            except AssertionError:
+                return Response({"error" : "Meeting is complete"}, status = status.HTTP_400_BAD_REQUEST)
         except ObjectDoesNotExist:
             return Response({"error" : "Meeting doen't exists"}, status = status.HTTP_400_BAD_REQUEST)
     except ObjectDoesNotExist:
@@ -246,3 +259,22 @@ def LaunchWhiteboard(request):
         return Response({"success" : "Whiteboard Launched"}, status = status.HTTP_200_OK)
     else:
         return Response({"error" : "Wrong data format"}, status = status.HTTP_400_BAD_REQUEST)
+
+
+"""
+# Launch a Whiteboard  -----------------
+@swagger_auto_schema(method='put', request_body=WhiteboardSerializer)
+@api_view(['put'])
+@permission_classes([IsAuthenticated])
+def AddCommentWhiteboard(request, whitename):
+    # Create whiteboard data model and store it
+    serializer = WhiteboardSerializer(data = request.data)
+
+    if serializer.is_valid():
+        # We save whiteboard
+        serializer.save()
+
+        return Response({"success" : "Whiteboard Launched"}, status = status.HTTP_200_OK)
+    else:
+        return Response({"error" : "Wrong data format"}, status = status.HTTP_400_BAD_REQUEST)
+"""
