@@ -8,9 +8,19 @@ https://docs.djangoproject.com/en/4.2/howto/deployment/wsgi/
 """
 
 import os
+import socketio
 
 from django.core.wsgi import get_wsgi_application
+from django.contrib.staticfiles.handlers import StaticFilesHandler
+from backend.views import sio
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'everseed.settings')
 
-application = get_wsgi_application()
+backend_app  = StaticFilesHandler(get_wsgi_application())
+application = socketio.Middleware(sio, wsgi_app=backend_app, socketio_path='socket.io')
+#application = get_wsgi_application()
+
+import eventlet
+import eventlet.wsgi
+
+eventlet.wsgi.server(eventlet.listen(('', 8000)), application)
