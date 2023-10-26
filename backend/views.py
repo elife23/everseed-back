@@ -41,10 +41,11 @@ class MyTokenObtainPairView(TokenObtainPairView):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def ViewUser(request, pkUser):
+    # Check if user exists
     try:
         user = User.objects.get(id = pkUser)
     except ObjectDoesNotExist:
-        return Response({'error': 'Not user at this ID'}, status = status.HTTP_400_BAD_REQUEST)
+        return Response({'error': 'None user found to ID {}'.format(pkUser)}, status = status.HTTP_404_NOT_FOUND)
 
     serialization = UserSerializer(user)
     return Response({"response" : serialization.data}, status = status.HTTP_200_OK)
@@ -54,35 +55,15 @@ def ViewUser(request, pkUser):
 @swagger_auto_schema(method='post', request_body=UserSerializer)
 @api_view(['POST'])
 def SignUp(request):
-    try:
-        # Save temporary current user password for make comparizon
-        temp_password = request.data['password']
-
-        # Hashing current user password
-        request.data['password'] = make_password(request.data['password'])
-    except KeyError:
-        temp_password = ''
-
-    # Insert data user
+    # Create User data model
     serializer = UserSerializer(data = request.data) 
 
     if serializer.is_valid():
-        # We get all user
-        all_user = User.objects.all();
-
-        for user in all_user:
-            # We compare each user password with current user password
-            is_exists_password = check_password(temp_password, user.password)
-
-            if is_exists_password == True:
-                return Response({"error" : "Password is not secured"}, status = status.HTTP_400_BAD_REQUEST)
-            else:
-                pass
-    
         serializer.save()
-        return Response({"success" : "Utilisateur crée"}, status = status.HTTP_201_CREATED)
+
+        return Response({"success" : "User registered"}, status = status.HTTP_201_CREATED)
     # Sinon
-    return Response({"error" : "Mauvais formmat de données"}, status = status.HTTP_400_BAD_REQUEST)    
+    return Response({"error" : "Invalid data format"}, status = status.HTTP_400_BAD_REQUEST)    
 
 
 # Launch a Meeting Session -----------
