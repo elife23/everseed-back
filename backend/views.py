@@ -29,7 +29,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         token = super().get_token(user)
 
         # Add custom claims
-        token['username'] = user.firstname
+        token['username'] = user.email
         token['password'] = user.password
         return token
 
@@ -80,9 +80,9 @@ def SignUp(request):
                 pass
     
         serializer.save()
-        return Response({"success" : "User registered with success"}, status = status.HTTP_201_CREATED)
+        return Response({"success" : "Utilisateur crée"}, status = status.HTTP_201_CREATED)
     # Sinon
-    return Response({"error" : "Wrong data format or firstname is already used"}, status = status.HTTP_400_BAD_REQUEST)    
+    return Response({"error" : "Mauvais formmat de données"}, status = status.HTTP_400_BAD_REQUEST)    
 
 
 # Launch a Meeting Session -----------
