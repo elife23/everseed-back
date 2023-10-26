@@ -45,7 +45,7 @@ def ViewUser(request, pkUser):
     try:
         user = User.objects.get(id = pkUser)
     except ObjectDoesNotExist:
-        return Response({'error': 'None user found to ID {}'.format(pkUser)}, status = status.HTTP_404_NOT_FOUND)
+        return Response({"error": "None user found to ID {}".format(pkUser)}, status = status.HTTP_404_NOT_FOUND)
 
     serialization = UserSerializer(user)
     return Response({"response" : serialization.data}, status = status.HTTP_200_OK)
@@ -71,20 +71,19 @@ def SignUp(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def LaunchMeeting(request):
-    # Create meeting data model and store it
+    # Create meeting data model
     serializer = MeetingSerializer(data = request.data)
 
     if serializer.is_valid():
-        # We save meeting
         serializer.save()
 
         return Response({"success" : "Meeting Launched"}, status = status.HTTP_200_OK)
-    else:
-        return Response({"error" : "Wrong data format"}, status = status.HTTP_400_BAD_REQUEST)
+
+    return Response({"error" : "Wrong data format"}, status = status.HTTP_400_BAD_REQUEST)
 
 
 
-# Custom a MeetingRoom of user -------------
+# Custom MeetingRoom of user -----------
 @swagger_auto_schema(method='post', request_body=MeetingroomSerializer)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -93,15 +92,15 @@ def SettingMeeting(request, roomName):
         # We get roomName of current meeting 
         meeting = Meeting.objects.get(roomname = roomName)
 
-        # We cast field meeting id with current meeting id
+        # We cast field meetingid with current meeting.id
         request.data['meetingid'] = meeting.id
 
         try:  
             # Check if an instance of Meetingroom already exists
-            meeting_room = Meetingroom.objects.get(meetingid = request.data['meetingid'])
+            meetingRoom = Meetingroom.objects.get(meetingid = request.data['meetingid'])
 
             # We update MeetingRoom
-            serializer = MeetingroomSerializer(instance = meeting_room, data = request.data)
+            serializer = MeetingroomSerializer(instance = meetingRoom, data = request.data)
 
             if serializer.is_valid():
                 serializer.save()
@@ -116,7 +115,7 @@ def SettingMeeting(request, roomName):
 
         if serializer.is_valid():
             serializer.save()
-            return Response({"success" : "Meetingroom inserted"}, status = status.HTTP_200_OK)
+            return Response({"success" : "Meetingroom inserted"}, status = status.HTTP_201_CREATED)
         else:
             return Response({"error" : "Wrong data format"}, status = status.HTTP_400_BAD_REQUEST)
     except ObjectDoesNotExist:
@@ -150,7 +149,6 @@ def JoinMeeting(request, roomName):
 
             # We get participant size
             size_participant = Participant.objects.filter(meetingid = meeting.id).count()
-            print(size_participant)
 
             # We get maxCapacity of meetingroom
             meetingroom = Meetingroom.objects.get(meetingid = meeting.id)
@@ -298,7 +296,7 @@ def ViewCommentWhiteboard(request, whiteName):
         return Response({"error" : "None comments found for this whiteboard"}, status = status.HTTP_400_BAD_REQUEST)
 
 
-# Define socket structure
+# Define socket view
 
 @sio.event
 def set_username(sid, message):
