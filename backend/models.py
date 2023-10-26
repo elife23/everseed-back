@@ -103,18 +103,17 @@ class MyUserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser):
-    firstname = models.CharField(max_length=255, unique=True)
+    firstname = models.CharField(max_length=255)
     lastname = models.CharField(max_length=255)
-    email = models.CharField(max_length=255)
-    deleted = models.IntegerField()
+    email = models.CharField(max_length=255, unique=True)
+    deleted = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
     last_login = None
 
     objects = MyUserManager()
 
-    USERNAME_FIELD = "firstname"
-    EMAIL_FIELD = "email"
-    REQUIRED_FIELDS = ["lastname", "email", "password", "deleted"]
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ["firstname", "lastname", "password", "deleted"]
 
     def __str__(self):
         return self.email
@@ -128,8 +127,7 @@ class User(AbstractBaseUser):
         "Does the user have permissions to view the app `app_label`?"
         # Simplest possible answer: Yes, always
         return True
-    
-    
+
     @property
     def is_staff(self):
         "Is the user a member of staff?"
