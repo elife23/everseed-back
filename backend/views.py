@@ -10,17 +10,17 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from drf_yasg.utils import swagger_auto_schema
 import secrets
 from cryptography.fernet import Fernet
-import socketio
+#import socketio
 from .serializers import *
 from .models import *
 
-
+"""
 # Define async mode
 async_mode = 'eventlet';
 
 # Define socket.io side 
 sio = socketio.Server(async_mode=async_mode);
-
+"""
 
 # Custom Token system : Login user --
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -298,108 +298,3 @@ def ViewCommentWhiteboard(request, whiteName):
 
 # Define socket view
 
-@sio.event
-def set_username(sid, message):
-    """ Programme de modification du nom d'utilisateur """
-    users[sid] = message['data'];
-
-    # on notifit que le username a ete correctement notifie
-    sio.emit('my_response', {'data': f"Username is set to {users[sid]} !"}, to=sid);
-
-
-
-@sio.event
-def my_event(sid, message):
-    # Programme qui permet d'envoyer le message a moi meme
-    sio.emit('my_response', {'data': message['data']}, room=sid);
-
-
-
-@sio.event
-def my_broadcast_event(sid, message):
-    # Programme qui permet d'envoyer le message a tous le monde
-    sio.emit('my_response', {'data': f"[{users[sid]}] {message['data']}"});
-
-
-
-@sio.event
-def join(sid, message):
-    """ Programme de creation et d'adesion de canale """
-
-    # on cree le canale et on se join a ce canal
-    sio.enter_room(sid, message['room']);
-
-    # on emet a tous ceux qui sont dans le canal qu'on vient de 
-    # rejoindre le canal
-    sio.emit('my_response', {'data': 'Entered room: ' + message['room']}, to=message['room']);
-
-
-@sio.event
-def leave(sid, message):
-    """ Programme de deconnection d'un canal """
-
-    # on se deconnecte du canal
-    sio.leave_room(sid, message['room']);
-
-    # on informe à tous ceux qui sont dans le canal, que celui-ci 
-    # a quitté le canal
-    sio.emit('my_response', {'data': users[sid] + ' left room: ' + message['room']}, room=message['room']);
-
-
-@sio.event
-def close_room(sid, message):
-    """ Programme de fermeture d'un canal """
-
-    # on ferme le canal
-    sio.close_room(message['room']);
-    sio.emit('my_response', {'data': 'Room ' + message['room'] + ' is closing.'}, room=message['room']);
-
-
-@sio.event
-def my_room_event(sid, message):
-    """ Programme qui permet d'envoyer un message a tous les membres du canal """
-    sio.emit('my_response', {'data': f"[{users[sid]}] {message['data']}"}, room=message['room']);
-
-
-@sio.event
-def disconnect_request(sid):
-    """ Programme qui declanche la deconnection de l'utilisateur """
-    sio.disconnect(sid);
-
-
-@sio.event
-def connect(sid, environ):
-    """ Programme de connexion 
-        Au cour de la connexion, on enregistre tous les utilisateurs 
-        connectes
-    """
-
-    print(f"{sid}\t connected");
-
-    # on ajoute le nouveau a la liste
-    users[sid] = None;
-
-    # on lui notifie qu'il s'est bien connecte
-    sio.emit('my_response', {'data': 'Connected', 'count': len(users)}, room=sid);
-
-    # on notifie a tous le monde le nombre de personnes actuellement connectes
-    sio.emit('my_response', {'data': f'{len(users)} connected now!', 'count': len(users)});
-
-
-@sio.event
-def disconnect(sid):
-    """ Programme de deconnexion
-        Lors de la deconnexion, on supprime l'utilisateur de la liste des
-        connectes
-    """
-
-    print(f"{sid}\t {users[sid]} disconnected");
-
-    # on notifie a tous le monde le nombre de personnes actuellement connectes
-    sio.emit('my_response', {'data': f"{users[sid]} is disconnected", 'count': len(users)});
-
-    # on le supprime de la liste 
-    del users[sid];
-
-    # on notifie a tous le monde le nombre de personnes actuellement connectes
-    sio.emit('my_response', {'data': f'{len(users)} connected', 'count': len(users)});
