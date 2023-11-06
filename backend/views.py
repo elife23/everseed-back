@@ -1,10 +1,11 @@
+from django.utils.translation import gettext_lazy as _
 from django.shortcuts import render, get_object_or_404
 from rest_framework.decorators import api_view, permission_classes
 from django.contrib.auth.hashers import make_password, check_password, hashlib
 from rest_framework.permissions import IsAuthenticated
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, exceptions
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from drf_yasg.utils import swagger_auto_schema
@@ -22,13 +23,29 @@ async_mode = 'eventlet';
 sio = socketio.Server(async_mode=async_mode);
 """
 
-# Custom Token system : Login user --
+# Login User View  -----------
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        # We get email and password in request
+        authenticate_kwargs = {
+            self.username_field: attrs[self.username_field],
+            "password": attrs["password"],
+        }
+
+        # We check if email exists
+        try:
+            self.user = User.objects.get(email = authenticate_kwargs['email'])
+        except ObjectDoesNotExist:
+            self.error_messages['no_email'] = _("Email not found")
+            raise exceptions.NotFound(self.error_messages['no_email'], 'no_email')
+
+        return super().validate(attrs)
+
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
 
-        # Add custom claims
+        # Add custom field value of token
         token['username'] = user.email
         token['password'] = user.password
         return token
@@ -37,7 +54,7 @@ class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
 
 
-# Show user's informations ----------
+# Show user informations ------------
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def ViewUser(request, pkUser):
@@ -45,7 +62,7 @@ def ViewUser(request, pkUser):
     try:
         user = User.objects.get(id = pkUser)
     except ObjectDoesNotExist:
-        return Response({"error": "None user found to ID {}".format(pkUser)}, status = status.HTTP_404_NOT_FOUND)
+        return Response({"error": "User not found"}, status = status.HTTP_404_NOT_FOUND)
 
     serialization = UserSerializer(user)
     return Response({"response" : serialization.data}, status = status.HTTP_200_OK)
@@ -61,7 +78,7 @@ def SignUp(request):
     if serializer.is_valid():
         serializer.save()
 
-        return Response({"success" : "User registered"}, status = status.HTTP_201_CREATED)
+        return Response({"success" : "User registered"}, status = status.HTTP_200_OK)
     # Sinon
     return Response({"error" : "Invalid data format"}, status = status.HTTP_400_BAD_REQUEST)    
 
@@ -79,7 +96,7 @@ def LaunchMeeting(request):
 
         return Response({"success" : "Meeting Launched"}, status = status.HTTP_200_OK)
 
-    return Response({"error" : "Wrong data format"}, status = status.HTTP_400_BAD_REQUEST)
+    return Response({"error" : "Invalid data format"}, status = status.HTTP_400_BAD_REQUEST)
 
 
 
@@ -106,7 +123,7 @@ def SettingMeeting(request, roomName):
                 serializer.save()
                 return Response({"success" : "Meetingroom update"}, status = status.HTTP_200_OK)
             else:
-                return Response({"error" : "Wrong data format"}, status = status.HTTP_400_BAD_REQUEST)
+                return Response({"error" : "Invalid data format"}, status = status.HTTP_400_BAD_REQUEST)
         except ObjectDoesNotExist:
             pass
 
@@ -115,11 +132,11 @@ def SettingMeeting(request, roomName):
 
         if serializer.is_valid():
             serializer.save()
-            return Response({"success" : "Meetingroom inserted"}, status = status.HTTP_201_CREATED)
+            return Response({"success" : "Meetingroom inserted"}, status = status.HTTP_200_OK)
         else:
-            return Response({"error" : "Wrong data format"}, status = status.HTTP_400_BAD_REQUEST)
+            return Response({"error" : "Invalid data format"}, status = status.HTTP_400_BAD_REQUEST)
     except ObjectDoesNotExist:
-        return Response({"error" : "Invalid meeting code"}, status = status.HTTP_400_BAD_REQUEST)
+        return Response({"error" : "Invalid meeting code"}, status = status.HTTP_404_NOT_FOUND)
 
 
 # Join a Meeting --------------------
@@ -164,13 +181,13 @@ def JoinMeeting(request, roomName):
                     serializer.save()
                     return Response({"success" : "You going to join the meeting"}, status = status.HTTP_200_OK)
                 else:
-                    return Response({"error" : "Wrong format data"}, status = status.HTTP_400_BAD_REQUEST)
+                    return Response({"error" : "Invalid data format"}, status = status.HTTP_400_BAD_REQUEST)
             except AssertionError:
                 return Response({"error" : "Meeting is complete"}, status = status.HTTP_400_BAD_REQUEST)
         except ObjectDoesNotExist:
-            return Response({"error" : "Meeting doen't exists"}, status = status.HTTP_400_BAD_REQUEST)
+            return Response({"error" : "Meeting not found"}, status = status.HTTP_404_NOT_FOUND)
     except ObjectDoesNotExist:
-        return Response({"error" : "Invalid Meeting code"}, status = status.HTTP_400_BAD_REQUEST)
+        return Response({"error" : "Invalid Meeting code"}, status = status.HTTP_404_NOT_FOUND)
 
 
 # Add comment of meeting -------------
@@ -190,7 +207,7 @@ def AddCommentMeeting(request, pkUser, roomName):
         try:
             meeting = Meeting.objects.get(id = request.data['meetingid'])
         except:
-            return Response({"error" : "Meeting doesn't exists"}, status = status.HTTP_400_BAD_REQUEST)
+            return Response({"error" : "Meeting Not found"}, status = status.HTTP_404_NOT_FOUND)
         
         # We verify if he is participant of the meeting
         try:
@@ -203,11 +220,11 @@ def AddCommentMeeting(request, pkUser, roomName):
                 serializer.save()
                 return Response({"success" : "Comment added with success"}, status = status.HTTP_200_OK)
             else:
-                return Response({"error" : "Wrong format data"}, status = status.HTTP_400_BAD_REQUEST)
+                return Response({"error" : "Invalid data format"}, status = status.HTTP_400_BAD_REQUEST)
         except ObjectDoesNotExist:
-            return Response({"error" : "He must be participant for send comment"}, status = status.HTTP_400_BAD_REQUEST)
+            return Response({"error" : "Participant not found"}, status = status.HTTP_404_NOT_FOUND)
     except ObjectDoesNotExist:
-        return Response({"error" : "Invalid Meeting code"}, status = status.HTTP_400_BAD_REQUEST)
+        return Response({"error" : "Invalid Meeting code"}, status = status.HTTP_404_NOT_FOUND)
 
 
 
@@ -227,7 +244,7 @@ def ViewCommentMeeting(request, roomName):
 
         return Response({"response" : serialization.data}, status = status.HTTP_200_OK)
     except ObjectDoesNotExist:
-        return Response({"error" : "None comments found for this meeting"}, status = status.HTTP_400_BAD_REQUEST)
+        return Response({"error" : "Comments not found for this meeting"}, status = status.HTTP_404_NOT_FOUND)
 
 
 
@@ -240,12 +257,11 @@ def LaunchWhiteboard(request):
     serializer = WhiteboardSerializer(data = request.data)
 
     if serializer.is_valid():
-        # We save whiteboard
         serializer.save()
 
         return Response({"success" : "Whiteboard Launched"}, status = status.HTTP_200_OK)
     else:
-        return Response({"error" : "Wrong data format"}, status = status.HTTP_400_BAD_REQUEST)
+        return Response({"error" : "Invalid data format"}, status = status.HTTP_400_BAD_REQUEST)
 
 
 
@@ -270,9 +286,9 @@ def AddCommentWhiteboard(request, whiteName):
             serializer.save()
             return Response({"success" : "Comment added with success"}, status = status.HTTP_200_OK)
         else:
-            return Response({"error" : "Wrong format data"}, status = status.HTTP_400_BAD_REQUEST)
+            return Response({"error" : "Invalid data format"}, status = status.HTTP_400_BAD_REQUEST)
     except ObjectDoesNotExist:
-        return Response({"error" : "Invalid Whiteboard code"}, status = status.HTTP_400_BAD_REQUEST)
+        return Response({"error" : "Invalid Whiteboard code"}, status = status.HTTP_404_NOT_FOUND)
 
 
 
@@ -293,7 +309,7 @@ def ViewCommentWhiteboard(request, whiteName):
 
         return Response({"response" : serialization.data}, status = status.HTTP_200_OK)
     except ObjectDoesNotExist:
-        return Response({"error" : "None comments found for this whiteboard"}, status = status.HTTP_400_BAD_REQUEST)
+        return Response({"error" : "Comments not found for this whiteboard"}, status = status.HTTP_404_NOT_FOUND)
 
 
 # Define socket view
