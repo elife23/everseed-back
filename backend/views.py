@@ -155,7 +155,7 @@ def JoinMeeting(request, roomName):
     # We check that user doesn't already join this meeting
     try:
         participant = Participant.objects.get(userid = request.data['userid'])
-        return Response({"success" : "You have already joined this meeting"}, status = status.HTTP_400_BAD_REQUEST)
+        return Response({"error" : "You have already joined this meeting"}, status = status.HTTP_400_BAD_REQUEST)
     except ObjectDoesNotExist:
         pass
 
@@ -195,7 +195,7 @@ def JoinMeeting(request, roomName):
         except ObjectDoesNotExist:
             return Response({"error" : "Meeting not found"}, status = status.HTTP_404_NOT_FOUND)
     except ObjectDoesNotExist:
-        return Response({"error" : "Invalid Meeting code"}, status = status.HTTP_404_NOT_FOUND)
+        return Response({"error" : "Meeting code not found"}, status = status.HTTP_404_NOT_FOUND)
 
 
 # Add comment of meeting -------------
@@ -232,7 +232,7 @@ def AddCommentMeeting(request, pkUser, roomName):
         except ObjectDoesNotExist:
             return Response({"error" : "Participant not found"}, status = status.HTTP_404_NOT_FOUND)
     except ObjectDoesNotExist:
-        return Response({"error" : "Invalid Meeting code"}, status = status.HTTP_404_NOT_FOUND)
+        return Response({"error" : "Meeting code not found"}, status = status.HTTP_404_NOT_FOUND)
 
 
 
@@ -296,7 +296,7 @@ def AddCommentWhiteboard(request, whiteName):
         else:
             return Response({"error" : "Invalid data format"}, status = status.HTTP_400_BAD_REQUEST)
     except ObjectDoesNotExist:
-        return Response({"error" : "Invalid Whiteboard code"}, status = status.HTTP_404_NOT_FOUND)
+        return Response({"error" : "Whiteboard code not found"}, status = status.HTTP_404_NOT_FOUND)
 
 
 
