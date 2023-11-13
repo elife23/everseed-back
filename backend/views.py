@@ -140,7 +140,7 @@ def SettingMeeting(request, roomName):
 
         if serializer.is_valid():
             serializer.save()
-            return Response({"success" : "Meetingroom inserted"}, status = status.HTTP_200_OK)
+            return Response({"success" : "Meetingroom added"}, status = status.HTTP_201_CREATED)
         else:
             return Response({"error" : "Invalid data format"}, status = status.HTTP_400_BAD_REQUEST)
     except ObjectDoesNotExist:
