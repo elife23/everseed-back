@@ -39,6 +39,14 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = '__all__'
 
+    def validate_email(self, value):
+        norm_email = value.lower()
+
+        if User.objects.filter(email = norm_email).exists():
+            raise serializers.ValidationError("Email already exists")
+        # Sinon
+        return norm_email
+
 
 class WhiteboardSerializer(serializers.ModelSerializer):
     class Meta:
