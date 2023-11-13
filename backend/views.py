@@ -84,8 +84,8 @@ def SignUp(request):
         return Response({"success" : "User registered"}, status = status.HTTP_201_CREATED)
 
     # We check if email already exists  
-    if serializer.errors.get('email')[0].code == 'unique':
-        return Response({"error" : "Email already exists"}, status = status.HTTP_400_BAD_REQUEST)
+    if serializer.validate_email(serializer.data['email']):
+        pass
 
     # Sinon
     return Response({"error" : "Invalid data format"}, status = status.HTTP_400_BAD_REQUEST)
