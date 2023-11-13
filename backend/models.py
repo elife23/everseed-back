@@ -83,7 +83,6 @@ class MyUserManager(BaseUserManager):
         user.set_password(password)
         user.save(using=self._db)
         return user
-    
 
     def create_superuser(self, email, firstname, lastname, deleted, password=None, **extra_fields):
         """
@@ -105,7 +104,7 @@ class MyUserManager(BaseUserManager):
 class User(AbstractBaseUser):
     firstname = models.CharField(max_length=255)
     lastname = models.CharField(max_length=255)
-    email = models.CharField(max_length=255, unique=True)
+    email = models.EmailField(max_length=255, unique=True)
     deleted = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
     last_login = None
