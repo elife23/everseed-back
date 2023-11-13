@@ -72,15 +72,23 @@ def ViewUser(request, pkUser):
 @swagger_auto_schema(method='post', request_body=UserSerializer)
 @api_view(['POST'])
 def SignUp(request):
+    # Hash password
+    request.data['password'] = make_password(request.data['password'])
+
     # Create User data model
     serializer = UserSerializer(data = request.data) 
 
     if serializer.is_valid():
         serializer.save()
 
-        return Response({"success" : "User registered"}, status = status.HTTP_200_OK)
+        return Response({"success" : "User registered"}, status = status.HTTP_201_CREATED)
+
+    # We check if email already exists  
+    if serializer.errors.get('email')[0].code == 'unique':
+        return Response({"error" : "Email already exists"}, status = status.HTTP_400_BAD_REQUEST)
+
     # Sinon
-    return Response({"error" : "Invalid data format"}, status = status.HTTP_400_BAD_REQUEST)    
+    return Response({"error" : "Invalid data format"}, status = status.HTTP_400_BAD_REQUEST)
 
 
 # Launch a Meeting Session -----------
