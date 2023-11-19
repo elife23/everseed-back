@@ -45,9 +45,11 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def get_token(cls, user):
         token = super().get_token(user)
 
-        # Add custom field value of token
-        token['username'] = user.email
-        token['password'] = user.password
+        # Custom value of token
+        token['firstname'] = user.firstname
+        token['lastname'] = user.lastname
+        token['email'] = user.email
+
         return token
 
 class MyTokenObtainPairView(TokenObtainPairView):
