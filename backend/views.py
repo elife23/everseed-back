@@ -26,6 +26,9 @@ sio = socketio.Server(async_mode=async_mode);
 # Login User View  -----------
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
+        # Set validate field
+        data = super().validate(attrs)
+
         # We get email and password in request
         authenticate_kwargs = {
             self.username_field: attrs[self.username_field],
@@ -39,16 +42,31 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
             self.error_messages['no_email'] = _("Email not found")
             raise exceptions.NotFound(self.error_messages['no_email'], 'no_email')
 
-        return super().validate(attrs)
+        # Get validate field
+        refresh = self.get_token(self.user)
+
+        try:
+            # Get user data
+            user = User.objects.get(email = self.user)
+        except:
+            self.error_messages['non_field_errors'] = _("Something happened")
+            raise exceptions.ValidationError(self.error_messages['non_field_errors'], 'no_action')
+
+        # Serialize user data
+        serializer = UserSerializer(user)
+
+        # Custom validate field
+        data["user"] = serializer.data
+
+        return data
 
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
 
         # Custom value of token
-        token['firstname'] = user.firstname
-        token['lastname'] = user.lastname
-        token['email'] = user.email
+        token['username'] = user.email
+        token['password'] = user.password
 
         return token
 
