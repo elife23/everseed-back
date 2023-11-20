@@ -52,8 +52,14 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         # Serialize user data
         serializer = UserSerializer(user)
 
+        # Custom token value
+        refresh = self.get_token(self.user)
+
         # Custom validate field
-        data["user"] = serializer.data
+        data["token"] = str(refresh.access_token) # Add a custom access field
+        data["user"] = serializer.data # Set user data
+        data.pop('refresh', None) # Remove refresh field
+        data.pop('access', None) # Remove default access field
 
         return data
 
