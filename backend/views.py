@@ -42,11 +42,8 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
             self.error_messages['no_email'] = _("Email not found")
             raise exceptions.NotFound(self.error_messages['no_email'], 'no_email')
 
-        # Get validate field
-        refresh = self.get_token(self.user)
-
+        # Get user data
         try:
-            # Get user data
             user = User.objects.get(email = self.user)
         except:
             self.error_messages['non_field_errors'] = _("Something happened")
