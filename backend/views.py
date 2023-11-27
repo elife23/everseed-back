@@ -11,6 +11,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from drf_yasg.utils import swagger_auto_schema
 import secrets
 from cryptography.fernet import Fernet
+import jwt
 #import socketio
 from .serializers import *
 from .models import *
@@ -26,6 +27,9 @@ sio = socketio.Server(async_mode=async_mode);
 # Login User View  -----------
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
+        # Define base key
+        key = "abcdefghijklmnopqrstuvwxyz012356789"
+
         # Set validate field
         data = super().validate(attrs)
 
@@ -55,9 +59,13 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         # Custom token value
         token = self.get_token(self.user)
 
+        # Encode user data
+        encode_user = jwt.encode({"value" : serializer.data}, key, algorithm="HS256")
+
         # Custom validate field
         data["token"] = str(token.access_token) # Add a custom access field
-        data["user"] = serializer.data # Set user data
+        data["user"] = encode_user # Set user data
+        data["key"] = key # Return key for decode user data
         data.pop('refresh', None) # Remove refresh field
         data.pop('access', None) # Remove default access field
 
