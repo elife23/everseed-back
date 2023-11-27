@@ -65,7 +65,6 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         # Custom validate field
         data["token"] = str(token.access_token) # Add a custom access field
         data["user"] = encode_user # Set user data
-        data["key"] = key # Return key for decode user data
         data.pop('refresh', None) # Remove refresh field
         data.pop('access', None) # Remove default access field
 
