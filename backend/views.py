@@ -1,7 +1,7 @@
 from django.utils.translation import gettext_lazy as _
 from django.shortcuts import render, get_object_or_404
 from rest_framework.decorators import api_view, permission_classes
-from django.contrib.auth.hashers import make_password, check_password, hashlib
+from django.contrib.auth.hashers import make_password
 from rest_framework.permissions import IsAuthenticated
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.response import Response
@@ -9,9 +9,7 @@ from rest_framework import status, exceptions
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from drf_yasg.utils import swagger_auto_schema
-import secrets
 from cryptography.fernet import Fernet
-import jwt
 #import socketio
 from .serializers import *
 from .models import *
@@ -27,9 +25,6 @@ sio = socketio.Server(async_mode=async_mode);
 # Login User View  -----------
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
-        # Define base key
-        key = "abcdefghijklmnopqrstuvwxyz012356789"
-
         # Set validate field
         data = super().validate(attrs)
 
@@ -59,12 +54,20 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         # Custom token value
         token = self.get_token(self.user)
 
+        # Formatted user data 
+        user_data = "{}-{}-{}-{}".format(serializer.data["id"], serializer.data["firstname"], serializer.data["lastname"], serializer.data["email"]) 
+
+        # Generate hashing key
+        key = b'lLRhdzGJTjMiaUH5YcQipAutXu3xRIduEaf04lQAj_c=' #Fernet.generate_key()
+
+        base = Fernet(key)
+
         # Encode user data
-        encode_user = jwt.encode({"value" : serializer.data}, key, algorithm="HS256")
+        encoded_user_data = base.encrypt(user_data.encode())
 
         # Custom validate field
         data["token"] = str(token.access_token) # Add a custom access field
-        data["user"] = encode_user # Set user data
+        data["user"] = encoded_user_data
         data.pop('refresh', None) # Remove refresh field
         data.pop('access', None) # Remove default access field
 
