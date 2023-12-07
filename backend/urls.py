@@ -6,7 +6,7 @@ from .views import MyTokenObtainPairView
 urlpatterns = [
     path('SignUp/', views.SignUp), # Enregistrer un user
     path('SignIn/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'), # Authentifier un user avec génération d'un token de connexion
-    path('ViewUser/<int:pkUser>/', views.ViewUser), # Afficher les informations d'utilisateur
+    #path('ViewUser/<int:pkUser>/', views.ViewUser), # Afficher les informations d'utilisateur
     path('LaunchMeeting/', views.LaunchMeeting), # Lancer un meeting
     path('SettingMeeting/<int:roomName>/', views.SettingMeeting), # Paramètrer une salle de réunion
     path('JoinMeeting/<int:roomName>/', views.JoinMeeting), # Rejoindre un meeting

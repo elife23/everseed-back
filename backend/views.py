@@ -1,7 +1,7 @@
 from django.utils.translation import gettext_lazy as _
 from django.shortcuts import render, get_object_or_404
 from rest_framework.decorators import api_view, permission_classes
-from django.contrib.auth.hashers import make_password
+from django.contrib.auth.hashers import make_password, check_password
 from rest_framework.permissions import IsAuthenticated
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.response import Response
@@ -25,37 +25,32 @@ sio = socketio.Server(async_mode=async_mode);
 # Login User View  -----------
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
-        # Set validate field
-        data = super().validate(attrs)
-
         # We get email and password in request
-        authenticate_kwargs = {
+        connexion_param = {
             self.username_field: attrs[self.username_field],
             "password": attrs["password"],
         }
 
         # We check if email exists
         try:
-            self.user = User.objects.get(email = authenticate_kwargs['email'])
+            self.user = User.objects.get(email = connexion_param['email'])
         except ObjectDoesNotExist:
-            self.error_messages['no_email'] = _("Email not found")
+            self.error_messages['no_email'] = _("L'email n'existe pas")
             raise exceptions.NotFound(self.error_messages['no_email'], 'no_email')
 
-        # Get user data
-        try:
-            user = User.objects.get(email = self.user)
-        except:
-            self.error_messages['non_field_errors'] = _("Something happened")
-            raise exceptions.ValidationError(self.error_messages['non_field_errors'], 'no_action')
+        # Try get user data
+        user = UserSerializer(self.user)
 
-        # Serialize user data
-        serializer = UserSerializer(user)
+        # We check password of email
+        if not check_password(connexion_param['password'], user.data['password']) == True:
+            self.error_messages['no_correspond'] = _("Le mot de passe ne correspond pas")
+            raise exceptions.AuthenticationFailed(self.error_messages['no_correspond'], 'no_correspond')
 
         # Custom token value
         token = self.get_token(self.user)
 
         # Formatted user data 
-        user_data = "{}-{}-{}-{}".format(serializer.data["id"], serializer.data["firstname"], serializer.data["lastname"], serializer.data["email"]) 
+        user_data = "{}-{}-{}-{}-{}".format(user.data["id"], user.data["firstname"], user.data["lastname"], user.data["email"], user.data["deleted"]) 
 
         # Generate hashing key
         key = b'lLRhdzGJTjMiaUH5YcQipAutXu3xRIduEaf04lQAj_c=' #Fernet.generate_key()
@@ -64,6 +59,9 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
         # Encode user data
         encoded_user_data = base.encrypt(user_data.encode())
+
+        # Set validate field
+        data = super().validate(attrs)
 
         # Custom validate field
         data["token"] = str(token.access_token) # Add a custom access field
@@ -86,7 +84,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
 
-
+"""
 # Show user informations ------------
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -99,7 +97,7 @@ def ViewUser(request, pkUser):
 
     serialization = UserSerializer(user)
     return Response({"response" : serialization.data}, status = status.HTTP_200_OK)
-
+"""
 
 # Create user ------------------------
 @swagger_auto_schema(method='post', request_body=UserSerializer)
@@ -114,14 +112,14 @@ def SignUp(request):
     if serializer.is_valid():
         serializer.save()
 
-        return Response({"success" : "User registered"}, status = status.HTTP_201_CREATED)
+        return Response({"success" : "Utilisateur enregistré"}, status = status.HTTP_201_CREATED)
 
     # We check if email already exists  
     if serializer.validate_email(serializer.data['email']):
         pass
 
     # Sinon
-    return Response({"error" : "Invalid data format"}, status = status.HTTP_400_BAD_REQUEST)
+    return Response({"error" : "Format de données invalide"}, status = status.HTTP_400_BAD_REQUEST)
 
 
 # Launch a Meeting Session -----------
@@ -135,9 +133,9 @@ def LaunchMeeting(request):
     if serializer.is_valid():
         serializer.save()
 
-        return Response({"success" : "Meeting Launched"}, status = status.HTTP_200_OK)
+        return Response({"success" : "Meeting démarré"}, status = status.HTTP_200_OK)
 
-    return Response({"error" : "Invalid data format"}, status = status.HTTP_400_BAD_REQUEST)
+    return Response({"error" : "Format de données invalide"}, status = status.HTTP_400_BAD_REQUEST)
 
 
 
@@ -162,9 +160,9 @@ def SettingMeeting(request, roomName):
 
             if serializer.is_valid():
                 serializer.save()
-                return Response({"success" : "Meetingroom update"}, status = status.HTTP_200_OK)
+                return Response({"success" : "Meetingroom mis à jour"}, status = status.HTTP_200_OK)
             else:
-                return Response({"error" : "Invalid data format"}, status = status.HTTP_400_BAD_REQUEST)
+                return Response({"error" : "Format de données invalide"}, status = status.HTTP_400_BAD_REQUEST)
         except ObjectDoesNotExist:
             pass
 
@@ -173,11 +171,11 @@ def SettingMeeting(request, roomName):
 
         if serializer.is_valid():
             serializer.save()
-            return Response({"success" : "Meetingroom added"}, status = status.HTTP_201_CREATED)
+            return Response({"success" : "Meetingroom configuré"}, status = status.HTTP_201_CREATED)
         else:
-            return Response({"error" : "Invalid data format"}, status = status.HTTP_400_BAD_REQUEST)
+            return Response({"error" : "Format de données invalide"}, status = status.HTTP_400_BAD_REQUEST)
     except ObjectDoesNotExist:
-        return Response({"error" : "Invalid meeting code"}, status = status.HTTP_404_NOT_FOUND)
+        return Response({"error" : "Code de réunion invalide"}, status = status.HTTP_404_NOT_FOUND)
 
 
 # Join a Meeting --------------------
@@ -188,7 +186,7 @@ def JoinMeeting(request, roomName):
     # We check that user doesn't already join this meeting
     try:
         participant = Participant.objects.get(userid = request.data['userid'])
-        return Response({"error" : "You have already joined this meeting"}, status = status.HTTP_400_BAD_REQUEST)
+        return Response({"error" : "Vous avez déjà rejoint cette réunion"}, status = status.HTTP_400_BAD_REQUEST)
     except ObjectDoesNotExist:
         pass
 
@@ -220,15 +218,15 @@ def JoinMeeting(request, roomName):
 
                 if serializer.is_valid():
                     serializer.save()
-                    return Response({"success" : "You going to join the meeting"}, status = status.HTTP_200_OK)
+                    return Response({"success" : "Vous venez de rejoindre la réunion"}, status = status.HTTP_200_OK)
                 else:
-                    return Response({"error" : "Invalid data format"}, status = status.HTTP_400_BAD_REQUEST)
+                    return Response({"error" : "Format de données invalide"}, status = status.HTTP_400_BAD_REQUEST)
             except AssertionError:
-                return Response({"error" : "Meeting is complete"}, status = status.HTTP_400_BAD_REQUEST)
+                return Response({"error" : "Meeting est complet"}, status = status.HTTP_400_BAD_REQUEST)
         except ObjectDoesNotExist:
-            return Response({"error" : "Meeting not found"}, status = status.HTTP_404_NOT_FOUND)
+            return Response({"error" : "Meeting n'existe pas"}, status = status.HTTP_404_NOT_FOUND)
     except ObjectDoesNotExist:
-        return Response({"error" : "Meeting code not found"}, status = status.HTTP_404_NOT_FOUND)
+        return Response({"error" : "Meeting code n'existe pas"}, status = status.HTTP_404_NOT_FOUND)
 
 
 # Add comment of meeting -------------
@@ -248,7 +246,7 @@ def AddCommentMeeting(request, pkUser, roomName):
         try:
             meeting = Meeting.objects.get(id = request.data['meetingid'])
         except:
-            return Response({"error" : "Meeting Not found"}, status = status.HTTP_404_NOT_FOUND)
+            return Response({"error" : "Meeting n'existe pas"}, status = status.HTTP_404_NOT_FOUND)
         
         # We verify if he is participant of the meeting
         try:
@@ -259,13 +257,13 @@ def AddCommentMeeting(request, pkUser, roomName):
 
             if serializer.is_valid():
                 serializer.save()
-                return Response({"success" : "Comment added with success"}, status = status.HTTP_200_OK)
+                return Response({"success" : "Comment ajouté"}, status = status.HTTP_200_OK)
             else:
-                return Response({"error" : "Invalid data format"}, status = status.HTTP_400_BAD_REQUEST)
+                return Response({"error" : "Format de données invalide"}, status = status.HTTP_400_BAD_REQUEST)
         except ObjectDoesNotExist:
-            return Response({"error" : "Participant not found"}, status = status.HTTP_404_NOT_FOUND)
+            return Response({"error" : "Participant n'existe pas"}, status = status.HTTP_404_NOT_FOUND)
     except ObjectDoesNotExist:
-        return Response({"error" : "Meeting code not found"}, status = status.HTTP_404_NOT_FOUND)
+        return Response({"error" : "Meeting code n'existe pas"}, status = status.HTTP_404_NOT_FOUND)
 
 
 
@@ -285,7 +283,7 @@ def ViewCommentMeeting(request, roomName):
 
         return Response({"response" : serialization.data}, status = status.HTTP_200_OK)
     except ObjectDoesNotExist:
-        return Response({"error" : "Comments not found for this meeting"}, status = status.HTTP_404_NOT_FOUND)
+        return Response({"error" : "Comments n'existe pas pour cette réunion"}, status = status.HTTP_404_NOT_FOUND)
 
 
 
@@ -300,9 +298,9 @@ def LaunchWhiteboard(request):
     if serializer.is_valid():
         serializer.save()
 
-        return Response({"success" : "Whiteboard Launched"}, status = status.HTTP_200_OK)
+        return Response({"success" : "Tableau de note démarré"}, status = status.HTTP_200_OK)
     else:
-        return Response({"error" : "Invalid data format"}, status = status.HTTP_400_BAD_REQUEST)
+        return Response({"error" : "Format de données invalide"}, status = status.HTTP_400_BAD_REQUEST)
 
 
 
@@ -325,11 +323,11 @@ def AddCommentWhiteboard(request, whiteName):
 
         if serializer.is_valid():
             serializer.save()
-            return Response({"success" : "Comment added with success"}, status = status.HTTP_200_OK)
+            return Response({"success" : "Comment ajouté"}, status = status.HTTP_200_OK)
         else:
-            return Response({"error" : "Invalid data format"}, status = status.HTTP_400_BAD_REQUEST)
+            return Response({"error" : "Format de données invalide"}, status = status.HTTP_400_BAD_REQUEST)
     except ObjectDoesNotExist:
-        return Response({"error" : "Whiteboard code not found"}, status = status.HTTP_404_NOT_FOUND)
+        return Response({"error" : "Whiteboard code n'existe pas"}, status = status.HTTP_404_NOT_FOUND)
 
 
 
@@ -350,7 +348,7 @@ def ViewCommentWhiteboard(request, whiteName):
 
         return Response({"response" : serialization.data}, status = status.HTTP_200_OK)
     except ObjectDoesNotExist:
-        return Response({"error" : "Comments not found for this whiteboard"}, status = status.HTTP_404_NOT_FOUND)
+        return Response({"error" : "Comments n'existe pas pour ce tableau de note"}, status = status.HTTP_404_NOT_FOUND)
 
 
 # Define socket view
