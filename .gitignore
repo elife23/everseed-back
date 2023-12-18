@@ -59,7 +59,7 @@ Pipfile.lock
 # Dossiers de dépendances Python
 venv/
 env/
-myenv/
+# myenv/
 
 # Dossiers de fichiers de documentation générés
 docs/_build/
