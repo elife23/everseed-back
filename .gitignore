@@ -1,0 +1,75 @@
+# Fichiers générés par Django
+*.pyc
+*.pyo
+__pycache__/
+
+# Fichiers de média chargés
+media/
+
+# Fichiers de base de données SQLite
+# *.sqlite3
+
+# Fichiers d'environnement
+.env
+
+# Fichiers de configuration local
+local_settings.py
+
+# Fichiers de sauvegarde
+*.bak
+*.swp
+*.swo
+
+# Fichiers de journalisation
+logs/
+
+# Dossiers de fichiers statiques collectés
+staticfiles/
+
+# Dossiers de fichiers de média collectés
+mediafiles/
+
+# Dossiers de fichiers téléchargés
+downloads/
+
+# Fichiers de dépendances
+# Utilisez la commande appropriée pour votre gestionnaire de paquets (par exemple, pipenv, poetry, pip, etc.)
+# exemple pour Pipenv
+Pipfile
+Pipfile.lock
+
+# Fichiers spécifiques à l'IDE (ajoutez les fichiers spécifiques à votre IDE si nécessaire)
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Fichiers de sauvegarde de l'éditeur
+*~
+*.swp
+*.swo
+*.bak
+
+# Fichiers de cache de l'éditeur
+.cache/
+
+# Fichiers de sauvegarde de l'éditeur Visual Studio Code
+.vscode/
+
+# Dossiers de dépendances Python
+venv/
+env/
+
+# Dossiers de fichiers de documentation générés
+docs/_build/
+
+# Fichiers de cache de tests
+.cache/
+.noseids
+nosetests.xml
+coverage.xml
+htmlcov/
+
+# Fichiers de cache Django
+*.log
+django-debug.log
